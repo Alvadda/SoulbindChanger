@@ -1,0 +1,9 @@
+## Interface: 90002
+## Title: SoulBindChanger
+## Notes: Lets you easyle swtich between your Covenants SouldBinds
+## Author: Alvadda
+## Version: 0.0.1
+## Dependencies: Blizzard_TalentUI
+
+SoulBindChanger.xml
+SoulBindChanger.lua
