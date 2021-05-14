@@ -100,7 +100,7 @@ local pelagos = {
 
  local bonesmithHeirmir = {
     id =  10,
-    name = "Plague Deviser Marileth",
+    name = "Bonesmith Heirmir",
     textureFile = "Interface/Soulbinds/SoulbindsShotsNecrolords",
     textureCoord = {0.308594,0.587891,0.000976562,0.545898}
  }
@@ -125,21 +125,21 @@ local function ShowCovenant(name)
     message(text)
 end
 
-local function GetAvailableSoulBindIds(soulBindIds)
-    local availableSoulBindIds = {}
-    local soulBindIdsLength = table.getn(soulBindIds)
+local function GetAvailableSoulbindIds(soulbindIds)
+    local availableSoulbindIds = {}
+    local soulbindIdsLength = table.getn(soulbindIds)
 
-    for i=1,soulBindIdsLength do
-        if (C_Soulbinds.CanActivateSoulbind(soulBindIds[i])) then
-            local availableSoulBindIdsLength = table.getn(availableSoulBindIds)
-            local newAvailableSoulBindIdsLength = availableSoulBindIdsLength + 1
-            availableSoulBindIds[newAvailableSoulBindIdsLength] = soulBindIds[i]
+    for i=1,soulbindIdsLength do
+        if (C_Soulbinds.CanActivateSoulbind(soulbindIds[i])) then
+            local availableSoulbindIdsLength = table.getn(availableSoulbindIds)
+            local newAvailableSoulbindIdsLength = availableSoulbindIdsLength + 1
+            availableSoulbindIds[newAvailableSoulbindIdsLength] = soulbindIds[i]
         end
     end
-    return availableSoulBindIds
+    return availableSoulbindIds
 end    
 
-local function GetCovenantSoulBindIds(covenantId)
+local function GetCovenantSoulbindIds(covenantId)
     if(covenantId == 1) then
         return {7, 13, 18}
     elseif (covenantId == 2) then 
@@ -154,7 +154,7 @@ local function GetCovenantSoulBindIds(covenantId)
 end
 
 
-local function GetSoulBindDetails(soulbindId)
+local function GetSoulbindDetails(soulbindId)
     if(soulbindId == 1) then
         return niya
     elseif (soulbindId == 2) then 
@@ -186,62 +186,85 @@ end
 
 
 
-local function GenerateButtons(availableSoulBinds)
+local function GenerateButtons(availableSoulbinds)
 
-    local availableSoulBindsLength = table.getn(availableSoulBinds)
+    local availableSoulbindsLength = table.getn(availableSoulbinds)
 
-    for i=1,availableSoulBindsLength do
-        local soulbindDetails = GetSoulBindDetails(availableSoulBinds[i])
+    if availableSoulbindsLength > 1 then
+        
+        for i=1,availableSoulbindsLength do
+            local soulbindDetails = GetSoulbindDetails(availableSoulbinds[i])
+    
+            frame["Button" ..i] = CreateFrame('Button', nil, frame); 
+            frame["Button" ..i]:SetPoint("CENTER", frame, "TOP", 0, -80 * i)
+            frame["Button" ..i]:SetSize(70, 70)
+            --frame["Button" ..i]:SetNormalTexture("Interface/Artifacts/ArtifactUIShadow")
 
-        frame["Button" ..i] = CreateFrame('Button', nil, frame, "TranslucentFrameTemplate"); 
-        frame["Button" ..i]:SetPoint("CENTER", frame, "TOP", 0, -80 * i)
-        frame["Button" ..i]:SetSize(70, 70)
-        frame["Button" ..i]:SetScript("OnClick", function (self, button, down)
-            C_Soulbinds.ActivateSoulbind(availableSoulBinds[i])
-            print(soulbindDetails.name .. " is now aktiv")
-        end)
-        local t = frame["Button" ..i]:CreateTexture(nil, 'ARTWORK'); 
-        t:SetPoint("CENTER", frame["Button" ..i], "CENTER", -10, 5)
-        t:SetSize(60, 60)
-        t:SetTexture(soulbindDetails.textureFile)
-        t:SetTexCoord(soulbindDetails.textureCoord[1], soulbindDetails.textureCoord[2], soulbindDetails.textureCoord[3], soulbindDetails.textureCoord[4])
+            local t = frame["Button" ..i]:CreateTexture(nil, 'ARTWORK'); 
+            t:SetPoint("CENTER", frame["Button" ..i], "CENTER", -10, 5)
+            t:SetSize(60, 60)
+            t:SetScale(0.9)
+            t:SetTexture(soulbindDetails.textureFile)
+            t:SetTexCoord(soulbindDetails.textureCoord[1], soulbindDetails.textureCoord[2], soulbindDetails.textureCoord[3], soulbindDetails.textureCoord[4])
+
+
+            local h = frame["Button" ..i]:CreateTexture(nil, 'ARTWORK'); 
+            h:SetPoint("CENTER", frame["Button" ..i], "CENTER", 0, 0)
+            h:SetSize(60, 60)
+            h:SetTexture("Interface/Garrison/OrderHallTalents")
+
+            if soulbindDetails.id ==  C_Soulbinds.GetActiveSoulbindID() then
+                h:SetTexCoord(0.431640625, 0.529296875, 0.4453125, 0.640625)
+            else
+                h:SetTexCoord(0.291015625, 0.388671875, 0.78125, 0.9765625)
+            end
+            
+
+
+            frame["Button" ..i]:SetScript("OnClick", function (self, button, down)
+                C_Soulbinds.ActivateSoulbind(availableSoulbinds[i])
+                print(soulbindDetails.name .. " is now aktiv")
+            end)
+        end
+        frame:Show()
+        frame:SetHeight(100 * availableSoulbindsLength)
+
     end
-
-    frame:SetHeight(100 * availableSoulBindsLength)
 end
 
 
 local function LoadCovernant()
     local covenentId = C_Covenants.GetActiveCovenantID()
-    local soulbindIds = GetCovenantSoulBindIds(covenentId)
-    local availableSoulBindIds = GetAvailableSoulBindIds(soulbindIds)
-    GenerateButtons(availableSoulBindIds)
+    local soulbindIds = GetCovenantSoulbindIds(covenentId)
+    local availableSoulbindIds = GetAvailableSoulbindIds(soulbindIds)
+    GenerateButtons(availableSoulbindIds)
     print("Soulbind Changer Loaded...")
 end
 
 
 
-local function SoulBindChangerHandler()
+local function SoulbindChangerHandler()
 
     -- local covenentId = C_Covenants.GetActiveCovenantID()
-    -- local soulbindIds = GetCovenantSoulBindIds(covenentId)
-    -- GetAvailableSoulBindIds(soulbindIds)
+    -- local soulbindIds = GetCovenantSoulbindIds(covenentId)
+    -- GetAvailableSoulbindIds(soulbindIds)
     -- ShowCovenant(soulbindIds[1])
     -- C_Soulbinds.ActivateSoulbind(5)
+    -- C_Soulbinds.GetActiveSoulbindID()
     
 end
 
-frame:SetScript("OnEvent", LoadCovernant) 
+--frame:SetScript("OnEvent", LoadCovernant) 
 
 PlayerTalentFrameTalents:HookScript("OnShow", function (self, event, ...)
-    frame:Show()
+    LoadCovernant()
 end)
 
 PlayerTalentFrameTalents:HookScript("OnHide", function (self, event, ...)
     frame:Hide()
 end)
 
-SlashCmdList["SBC"] = SoulBindChangerHandler
+SlashCmdList["SBC"] = SoulbindChangerHandler
 
 
 
