@@ -105,25 +105,15 @@ local pelagos = {
     textureCoord = {0.308594,0.587891,0.000976562,0.545898}
  }
 
-local frame = CreateFrame("Frame", "Test", PlayerTalentFrameTalents, "BasicFrameTemplate")
+local buttons = {}
+local frame = CreateFrame("Frame", "sbcFrame", UIParent, "BasicFrameTemplate")
 
 --Frame Setup
 frame:Hide()
 frame:SetHeight(300)
 frame:SetWidth(80)
 frame:SetPoint("TOPRIGHT", PlayerTalentFrame, "RIGHT", 81, 233)
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-
-function Test () 
-    
-end
-
-local function ShowCovenant(name)
-    local text = "You are a, " .. name .. "!"
-
-    message(text)
-end
 
 local function GetAvailableSoulbindIds(soulbindIds)
     local availableSoulbindIds = {}
@@ -149,7 +139,7 @@ local function GetCovenantSoulbindIds(covenantId)
     elseif (covenantId == 4) then 
         return {4, 5, 10}
     else            
-        ShowCovenant("You dont have a Covenent")
+        print("No Covenant found!")
     end
 end
 
@@ -184,60 +174,50 @@ local function GetSoulbindDetails(soulbindId)
     end
 end
 
-
-
 local function GenerateButtons(availableSoulbinds)
-
     local availableSoulbindsLength = table.getn(availableSoulbinds)
 
     if availableSoulbindsLength > 1 then
         
         for i=1,availableSoulbindsLength do
             local soulbindDetails = GetSoulbindDetails(availableSoulbinds[i])
+
+            local b = CreateFrame('Button', nil, frame); 
+            b:SetPoint("CENTER", frame, "TOP", 0, -80 * i)
+            b:SetSize(70, 70)
+
+            b.icon = b:CreateTexture(nil, 'ARTWORK'); 
+            b.icon:SetPoint("CENTER", b, "CENTER", -10, 5)
+            b.icon:SetSize(60, 60)
+            b.icon:SetScale(0.9)
+            b.icon:SetTexture(soulbindDetails.textureFile)
+            b.icon:SetTexCoord(soulbindDetails.textureCoord[1], soulbindDetails.textureCoord[2], soulbindDetails.textureCoord[3], soulbindDetails.textureCoord[4])
+
+            b.border = b:CreateTexture(nil, 'ARTWORK');
+            b.border:SetAllPoints(b); 
+            b.border:SetSize(60, 60)
+            b.border:SetScale(1.1)
+            b.border:SetTexture("Interface/Garrison/OrderHallTalents")
     
-            frame["Button" ..i] = CreateFrame('Button', nil, frame); 
-            frame["Button" ..i]:SetPoint("CENTER", frame, "TOP", 0, -80 * i)
-            frame["Button" ..i]:SetSize(70, 70)
-
-            frame["ButtonIcon" ..i] = frame["Button" ..i]:CreateTexture(nil, 'ARTWORK'); 
-            frame["ButtonIcon" ..i]:SetPoint("CENTER", frame["Button" ..i], "CENTER", -10, 5)
-            frame["ButtonIcon" ..i]:SetSize(60, 60)
-            frame["ButtonIcon" ..i]:SetScale(0.9)
-            frame["ButtonIcon" ..i]:SetTexture(soulbindDetails.textureFile)
-            frame["ButtonIcon" ..i]:SetTexCoord(soulbindDetails.textureCoord[1], soulbindDetails.textureCoord[2], soulbindDetails.textureCoord[3], soulbindDetails.textureCoord[4])
-
-
-            frame["ButtonBorder" ..i] = frame["Button" ..i]:CreateTexture(nil, 'ARTWORK'); 
-            frame["ButtonBorder" ..i]:SetPoint("CENTER", frame["Button" ..i], "CENTER", 0, 0)
-            frame["ButtonBorder" ..i]:SetSize(60, 60)
-            frame["ButtonBorder" ..i]:SetScale(1.1)
-            
-            --frame["ButtonBorder" ..i]:SetTexture("Interface/Garrison/OrderHallTalents")
-            -- if soulbindDetails.id ==  C_Soulbinds.GetActiveSoulbindID() then
-            --     frame["ButtonBorder" ..i]:SetTexCoord(0.431640625, 0.529296875, 0.4453125, 0.640625)
-            -- else
-            --     frame["ButtonBorder" ..i]:SetTexCoord(0.291015625, 0.388671875, 0.78125, 0.9765625)
-            -- end
-            
-
-
-            frame["Button" ..i]:SetScript("OnClick", function (self, button, down)
-
-
-                for l=1,availableSoulbindsLength do
-                    if l == i then
-                        frame["ButtonBorder" ..l]:SetTexture("Interface/Garrison/OrderHallTalents")
-                        frame["ButtonBorder" ..l]:SetTexCoord(0.431640625, 0.529296875, 0.4453125, 0.640625)
-                    else
-                        frame["ButtonBorder" ..l]:SetTexture("Interface/Garrison/OrderHallTalents")
-                        frame["ButtonBorder" ..l]:SetTexCoord(0.291015625, 0.388671875, 0.78125, 0.9765625)
-                    end
-                    
+            if soulbindDetails.id ==  C_Soulbinds.GetActiveSoulbindID() then
+                b.border:SetTexCoord(0.431640625, 0.529296875, 0.4453125, 0.640625)
+            else
+                b.border:SetTexCoord(0.291015625, 0.388671875, 0.78125, 0.9765625)
+            end   
+    
+            b:SetScript("OnClick", function (self, button, down)
+    
+                for _,button in ipairs(buttons) do
+                    button.border:SetTexCoord(0.291015625, 0.388671875, 0.78125, 0.9765625)
                 end
+                b.border:SetTexCoord(0.431640625, 0.529296875, 0.4453125, 0.640625)
+
                 C_Soulbinds.ActivateSoulbind(availableSoulbinds[i])
-                
                 print(soulbindDetails.name .. " is now aktiv")
-            end)       
+
+            end)  
+    
+            table.insert(buttons, b)
         end
         frame:Show()
         frame:SetHeight(100 * availableSoulbindsLength)
@@ -257,16 +237,9 @@ end
 
 local function SoulbindChangerHandler()
 
-    -- local covenentId = C_Covenants.GetActiveCovenantID()
-    -- local soulbindIds = GetCovenantSoulbindIds(covenentId)
-    -- GetAvailableSoulbindIds(soulbindIds)
-    -- ShowCovenant(soulbindIds[1])
-    -- C_Soulbinds.ActivateSoulbind(5)
-    -- C_Soulbinds.GetActiveSoulbindID()
     
 end
 
---frame:SetScript("OnEvent", LoadCovernant) 
 
 PlayerTalentFrameTalents:HookScript("OnShow", function (self, event, ...)
     LoadCovernant()
