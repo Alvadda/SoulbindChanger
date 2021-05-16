@@ -81,7 +81,7 @@ local pelagos = {
     id =  6,
     name = "Korayn",
     textureFile = "Interface/Soulbinds/SoulbindsShotsFey",
-    textureCoord = {0.295898,0.295898,0.000976562,0.545898}
+    textureCoord = {0.295898,0.590332,0.000976562,0.545898}
  }
 
  local plagueDeviserMarileth = {
@@ -111,9 +111,20 @@ local frame = CreateFrame("Frame", "sbcFrame", UIParent, "BasicFrameTemplate")
 --Frame Setup
 frame:Hide()
 frame:SetHeight(300)
-frame:SetWidth(80)
-frame:SetPoint("TOPRIGHT", PlayerTalentFrame, "RIGHT", 81, 233)
+frame:SetWidth(60)
+frame:SetPoint("TOPRIGHT", PlayerTalentFrame, "RIGHT", 60, 233)
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
+
+local function hasValue (tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+
+    return false
+end
 
 local function GetAvailableSoulbindIds(soulbindIds)
     local availableSoulbindIds = {}
@@ -139,7 +150,7 @@ local function GetCovenantSoulbindIds(covenantId)
     elseif (covenantId == 4) then 
         return {4, 5, 10}
     else            
-        print("No Covenant found!")
+        return {}
     end
 end
 
@@ -175,7 +186,13 @@ local function GetSoulbindDetails(soulbindId)
 end
 
 local function GenerateButtons(availableSoulbinds)
+
+    if table.getn(buttons) > 0 then
+        return
+    end
+    
     local availableSoulbindsLength = table.getn(availableSoulbinds)
+
 
     if availableSoulbindsLength > 1 then
         
@@ -184,12 +201,14 @@ local function GenerateButtons(availableSoulbinds)
 
             local b = CreateFrame('Button', nil, frame); 
             b:SetPoint("CENTER", frame, "TOP", 0, -80 * i)
-            b:SetSize(70, 70)
+            b:SetSize(50, 70)
+            b.soulbindId = soulbindDetails.id
+            b:SetAlpha(.5); 
 
             b.icon = b:CreateTexture(nil, 'ARTWORK'); 
-            b.icon:SetPoint("CENTER", b, "CENTER", -10, 5)
+            b.icon:SetPoint("CENTER", b, "CENTER", -8, 0)
             b.icon:SetSize(60, 60)
-            b.icon:SetScale(0.9)
+            b.icon:SetScale(0.8)
             b.icon:SetTexture(soulbindDetails.textureFile)
             b.icon:SetTexCoord(soulbindDetails.textureCoord[1], soulbindDetails.textureCoord[2], soulbindDetails.textureCoord[3], soulbindDetails.textureCoord[4])
 
@@ -207,30 +226,48 @@ local function GenerateButtons(availableSoulbinds)
     
             b:SetScript("OnClick", function (self, button, down)
     
-                for _,button in ipairs(buttons) do
-                    button.border:SetTexCoord(0.291015625, 0.388671875, 0.78125, 0.9765625)
+                if b:GetAlpha() == 1 then
+                    for _,button in ipairs(buttons) do
+                        button.border:SetTexCoord(0.291015625, 0.388671875, 0.78125, 0.9765625)
+                    end
+                    b.border:SetTexCoord(0.431640625, 0.529296875, 0.4453125, 0.640625)
+                    
+                    C_Soulbinds.ActivateSoulbind(availableSoulbinds[i])
+                    print(soulbindDetails.name .. " is now aktiv")
+                else    
+                    UIErrorsFrame:AddMessage("cant change your Soulbind ", 1.0, 0.0, 0.0, 53, 5);
                 end
-                b.border:SetTexCoord(0.431640625, 0.529296875, 0.4453125, 0.640625)
-
-                C_Soulbinds.ActivateSoulbind(availableSoulbinds[i])
-                print(soulbindDetails.name .. " is now aktiv")
-
+                
             end)  
     
             table.insert(buttons, b)
         end
-        frame:Show()
+        --frame:Show()
         frame:SetHeight(100 * availableSoulbindsLength)
 
     end
 end
 
+local function ShowAvailableButtons(availableSoulbindIds)
+    
+    for _,button in ipairs(buttons) do
+        if hasValue(availableSoulbindIds, button.soulbindId) then
+            button:SetAlpha(1); 
+        else
+            button:SetAlpha(.5); 
+        end
+    end
+end
+
+
 
 local function LoadCovernant()
+
     local covenentId = C_Covenants.GetActiveCovenantID()
     local soulbindIds = GetCovenantSoulbindIds(covenentId)
     local availableSoulbindIds = GetAvailableSoulbindIds(soulbindIds)
-    GenerateButtons(availableSoulbindIds)
+
+    GenerateButtons(soulbindIds)
 end
 
 
@@ -241,8 +278,21 @@ local function SoulbindChangerHandler()
 end
 
 
+frame:SetScript("OnEvent", LoadCovernant) 
+
 PlayerTalentFrameTalents:HookScript("OnShow", function (self, event, ...)
-    LoadCovernant()
+
+    local covenentId = C_Covenants.GetActiveCovenantID()
+    local soulbindIds = GetCovenantSoulbindIds(covenentId)
+    if table.getn(soulbindIds) == 0 then
+        frame:Hide()
+        return
+    end
+
+    local availableSoulbindIds = GetAvailableSoulbindIds(soulbindIds)
+    ShowAvailableButtons(availableSoulbindIds)
+    frame:Show()
+    
 end)
 
 PlayerTalentFrameTalents:HookScript("OnHide", function (self, event, ...)
