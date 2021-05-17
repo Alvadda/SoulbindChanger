@@ -3,6 +3,5 @@
 ## Notes: Lets you easyle swtich between your Covenants Souldbinds
 ## Author: Alvadda
 ## Version: 0.0.1
-## Dependencies: Blizzard_TalentUI
 
 SoulbindChanger.lua
